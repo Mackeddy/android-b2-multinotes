@@ -1,4 +1,4 @@
-package com.example.multinotes;
+package com.example.notetakingapplication;
 
 import org.junit.Test;
 

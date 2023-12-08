@@ -13,6 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Multi Notes"
+rootProject.name = "Note Taking Application"
 include(":app")
- 

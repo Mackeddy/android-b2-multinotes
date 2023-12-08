@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.multinotes"
-    compileSdk = 33
+    namespace = "com.example.notetakingapplication"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.multinotes"
-        minSdk = 33
+        applicationId = "com.example.notetakingapplication"
+        minSdk = 26
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -19,8 +19,14 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
+    }
+    buildFeatures {
+        viewBinding = true;
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

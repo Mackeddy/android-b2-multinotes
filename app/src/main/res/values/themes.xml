@@ -1,9 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.MultiNotes" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.NoteTakingApplication" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name ="colorPrimary">@color/darkGray</item>
+        <item name="colorPrimaryVariant">@color/black</item>
+        <item name="colorOnPrimary">@color/darkGray</item>
     </style>
-
-    <style name="Theme.MultiNotes" parent="Base.Theme.MultiNotes" />
+    <style name="Theme.NoteTakingApplication" parent="Base.Theme.NoteTakingApplication" />
 </resources>

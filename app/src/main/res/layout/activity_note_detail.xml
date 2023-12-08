@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NoteDetailActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?actionBarSize"
+        android:theme="?actionBarTheme"
+        android:background="@color/darkGray">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Note Detail"
+            android:textSize="35sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:layout_gravity="top"/>
+
+        <ImageButton
+            android:layout_width="48sp"
+            android:layout_height="48sp"
+            android:src="@drawable/save"
+            android:layout_gravity="end"
+            android:onClick="saveNote"
+            android:contentDescription="Save" />
+
+        <ImageButton
+            android:id="@+id/deleteNoteButton"
+            android:layout_width="48sp"
+            android:layout_height="48sp"
+            android:layout_gravity="end"
+            android:onClick="deleteNote"
+            android:src="@drawable/delete"
+            android:contentDescription="Delete" />
+
+        <ImageButton
+            android:id="@+id/setAlarmButton"
+            android:layout_width="48sp"
+            android:layout_height="48sp"
+            android:layout_gravity="end"
+            android:onClick="setAlarm"
+            android:src="@drawable/alarm"
+            android:contentDescription="Alarm" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Title"
+        android:textSize="25sp"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/darkGray"
+        android:textStyle="bold"
+        android:layout_gravity="top"/>
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        android:layout_marginTop="20dp"
+        android:maxLines="1"
+        android:textColor="@color/darkGray"
+        android:layout_gravity="center"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description"
+        android:textSize="25sp"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/darkGray"
+        android:textStyle="bold"
+        android:layout_gravity="top"/>
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"
+        android:layout_marginTop="20dp"
+        android:minLines="3"
+        android:textColor="@color/darkGray"
+        android:layout_gravity="center"/>
+
+    <ImageButton
+        android:id="@+id/addImage"
+        android:layout_width="48sp"
+        android:layout_height="48sp"
+        android:layout_gravity="top"
+        android:src="@drawable/addimage"
+        android:onClick="addImageButton"
+        android:contentDescription="Add Image" />
+
+</LinearLayout>
