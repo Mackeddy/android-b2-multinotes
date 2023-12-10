@@ -4,9 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -33,6 +36,7 @@ public class SQLiteManager extends SQLiteOpenHelper
     private static final String DESC_FIELD = "desc";
     private static final String CREATED_FIELD = "created";
     private static final String DELETED_FIELD = "deleted";
+    private static final String KEY_IMAGE_DATA = "image";
 
     @SuppressLint("SimpleDateFormat")
     private static final DateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
@@ -69,8 +73,11 @@ public class SQLiteManager extends SQLiteOpenHelper
                 .append(CREATED_FIELD)
                 .append(" TEXT, ")
                 .append(DELETED_FIELD)
-                .append(" TEXT)");
+                .append(" TEXT, ")
+                .append(KEY_IMAGE_DATA)
+                .append(" BLOB) ");
         sqLiteDatabase.execSQL(sql.toString());
+
     }
 
     @Override
@@ -89,17 +96,24 @@ public class SQLiteManager extends SQLiteOpenHelper
         contentValues.put(DESC_FIELD, note.getDescription());
         contentValues.put(CREATED_FIELD, getStringFromDateTime(note.getCreated()));
         contentValues.put(DELETED_FIELD, getStringFromDate(note.getDeleted()));
+        contentValues.put(KEY_IMAGE_DATA, note.getImage());
         sqLiteDatabase.insert(TABLE_NAME, null, contentValues);
     }
 
-    public void addImageToNote(int noteId, String imagePath) {
+    public boolean addImageToNote(byte[] img) {
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-
         ContentValues values = new ContentValues();
-        values.put(KEY_NOTE_ID, noteId);
+        values.put(KEY_IMAGE_DATA, img);
 
-        sqLiteDatabase.insert(TABLE_IMAGES, null, values);
-        sqLiteDatabase.close();
+        try {
+            long ins = sqLiteDatabase.insert(TABLE_NAME, null, values);
+            return ins != -1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            sqLiteDatabase.close();
+        }
     }
 
     public void populateNoteListArray() {
@@ -113,10 +127,13 @@ public class SQLiteManager extends SQLiteOpenHelper
                     String desc = result.getString(3);
                     String stringCreated = result.getString(4);
                     String stringDeleted = result.getString(5);
+                    byte[] image = null; // Initialize to null initially
+                    // Use getBlob instead of getString
+                    image = result.getBlob(6);
                     @SuppressLint("Range") int noteId = result.getInt(result.getColumnIndex(ID_FIELD)); // Fetch note ID
                     Date deleted = getDateFromString(stringDeleted);
                     LocalDateTime created = getDateTimeFromString(stringCreated);
-                    Note note = new Note(id, title, desc, created, deleted); // Include imagePaths in Note constructor
+                    Note note = new Note(id, title, desc, created, deleted, image); // Include imagePaths in Note constructor
                     Note.noteArrayList.add(note);
                 }
             }
@@ -132,6 +149,7 @@ public class SQLiteManager extends SQLiteOpenHelper
         contentValues.put(DESC_FIELD, note.getDescription());
         contentValues.put(CREATED_FIELD, getStringFromDateTime(note.getCreated()));
         contentValues.put(DELETED_FIELD, getStringFromDate(note.getDeleted()));
+        contentValues.put(KEY_IMAGE_DATA, note.getImage());
 
         sqLiteDatabase.update(TABLE_NAME, contentValues, ID_FIELD + " =? ", new String[]{String.valueOf(note.getId())});
     }

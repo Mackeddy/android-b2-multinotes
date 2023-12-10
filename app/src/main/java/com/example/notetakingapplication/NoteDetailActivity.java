@@ -2,17 +2,40 @@ package com.example.notetakingapplication;
 
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.provider.MediaStore;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import com.example.notetakingapplication.databinding.ActivityMainBinding;
+import com.example.notetakingapplication.databinding.ActivityNoteDetailBinding;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
@@ -21,15 +44,74 @@ import java.util.Locale;
 
 public class NoteDetailActivity extends AppCompatActivity {
     private EditText titleEditText, descEditText;
+    private TextView selectTime;
     private ImageButton deleteButton;
+    private ImageView image;
     private Note selectedNote;
+    private @NonNull ActivityNoteDetailBinding binding;
+    private MaterialTimePicker timePicker;
+    private Calendar calendar;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_note_detail);
+        binding = ActivityNoteDetailBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
         initWidget();
         checkForEditNote();
+        new Thread(() -> createNotificationChannel()).start();
+
+        binding.selectTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timePicker = new MaterialTimePicker.Builder()
+                        .setTimeFormat(TimeFormat.CLOCK_12H)
+                        .setHour(12)
+                        .setMinute(0)
+                        .setTitleText("Select Alarm Time")
+                        .build();
+
+                timePicker.show(getSupportFragmentManager(), "androidknowledge");
+                timePicker.addOnPositiveButtonClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        System.out.println("đang set thời gian");
+                        if(timePicker.getHour() > 12) {
+                            binding.selectTime.setText(
+                                    String.format("%02d", (timePicker.getHour() - 12)) + ":" +
+                                            String.format("%02d", (timePicker.getMinute())) + "PM"
+                            );
+                        } else{
+                            binding.selectTime.setText(timePicker.getHour() + ":" + timePicker.getMinute() + "AM");
+                        }
+
+                        calendar = Calendar.getInstance();
+                        calendar.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
+                        calendar.set(Calendar.MINUTE, timePicker.getMinute());
+                        calendar.set(Calendar.SECOND, 0);
+                        calendar.set(Calendar.MILLISECOND, 0);
+                    }
+                });
+            }
+        });
+
+        binding.setAlarmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                Intent intent = new Intent(NoteDetailActivity.this, AlarmReceiver.class);
+                pendingIntent = PendingIntent.getBroadcast(NoteDetailActivity.this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+                alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                Toast.makeText(NoteDetailActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     private void checkForEditNote() {
@@ -40,6 +122,14 @@ public class NoteDetailActivity extends AppCompatActivity {
         if (selectedNote != null) {
             titleEditText.setText(selectedNote.getTitle());
             descEditText.setText(selectedNote.getDescription());
+            // Get the image byte array from the selected note
+            byte[] img = selectedNote.getImage();
+
+            // Check if the image is null
+            if (img != null) {
+                // Set the image directly from the byte array
+                image.setImageBitmap(BitmapFactory.decodeByteArray(img, 0, img.length));
+            }
         } else {
             deleteButton.setVisibility(View.INVISIBLE);
         }
@@ -49,6 +139,8 @@ public class NoteDetailActivity extends AppCompatActivity {
         titleEditText = findViewById(R.id.titleEditText);
         descEditText = findViewById(R.id.descriptionEditText);
         deleteButton = findViewById(R.id.deleteNoteButton);
+        selectTime = findViewById(R.id.selectTime);
+        image = findViewById(R.id.image);
     }
 
     public void saveNote(View view) {
@@ -56,7 +148,16 @@ public class NoteDetailActivity extends AppCompatActivity {
         String title = titleEditText.getText().toString();
         String description = descEditText.getText().toString();
         LocalDateTime created = LocalDateTime.now(); // Update the LocalDateTime creation
-         // Set formatted date to your EditText
+        byte[] img = null;
+        Drawable drawable_img = image.getDrawable();
+        if (drawable_img != null) {
+            Bitmap bitmap = ((BitmapDrawable) drawable_img).getBitmap();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+            img = byteArrayOutputStream.toByteArray();
+        }
+
+        // Set formatted date to your EditText
         if (selectedNote == null) {
             // Get the last used ID or use the size of the array + 1 as a fallback
             int id;
@@ -65,8 +166,7 @@ public class NoteDetailActivity extends AppCompatActivity {
             } else {
                 id = Note.noteArrayList.get(Note.noteArrayList.size() - 1).getId() + 1;
             }
-
-            Note newNote = new Note(id, title, description, created);
+            Note newNote = new Note(id, title, description, created, img);
             Note.noteArrayList.add(newNote);
             sqLiteManager.addNoteToDatabase(newNote);
         } else {
@@ -85,85 +185,68 @@ public class NoteDetailActivity extends AppCompatActivity {
         finish();
     }
 
-    public void setAlarm(View view) {
-        Intent intent = getIntent();
-        intent.putExtra("title", titleEditText.toString());
-        intent.putExtra("description", descEditText.toString());
-        // Get the current date and time
-        Calendar calendar = Calendar.getInstance();
 
-        // Show DatePickerDialog to select the date
-        DatePickerDialog.OnDateSetListener dateSetListener = (view1, year, monthOfYear, dayOfMonth) -> {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, monthOfYear);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+    private void createNotificationChannel(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+            CharSequence name = "akchannel";
+            String desc = "Channel for Alarm";
+            int imp = NotificationManager.IMPORTANCE_DEFAULT;
 
-            // Show TimePickerDialog to select the time
-            TimePickerDialog.OnTimeSetListener timeSetListener = (view2, hourOfDay, minute) -> {
-                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                calendar.set(Calendar.MINUTE, minute);
-                calendar.set(Calendar.SECOND, 0);
+            NotificationChannel channel = new NotificationChannel("Notify", name, imp);
+            channel.setDescription(desc);
 
-                // Set the alarm
-                setAlarm(calendar);
-            };
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
 
-            // Show the TimePickerDialog
-            TimePickerDialog timePickerDialog = new TimePickerDialog(
-                    this,
-                    timeSetListener,
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE),
-                    true
-            );
-            timePickerDialog.show();
-        };
-
-        // Show the DatePickerDialog
-        DatePickerDialog datePickerDialog = new DatePickerDialog(
-                this,
-                dateSetListener,
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
-        datePickerDialog.show();
-    }
-
-    private void setAlarm(Calendar calendar) {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        // You can put extra data in the intent if needed
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
-        );
-
-        // Set the alarm
-        if (alarmManager != null) {
-            alarmManager.set(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.getTimeInMillis(),
-                    pendingIntent
-            );
+            // Kiểm tra xem ứng dụng đã được cấp quyền SEND_NOTIFICATION chưa
+            if (!notificationManager.areNotificationsEnabled()) {
+                // Nếu chưa, chuyển người dùng đến màn hình cài đặt để cấp quyền
+                Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                startActivity(intent);
+            }
         }
-
-        // Notify the user that the alarm is set
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-        String alarmTime = sdf.format(calendar.getTime());
-        Toast.makeText(
-                this,
-                "Alarm set for " + alarmTime,
-                Toast.LENGTH_SHORT
-        ).show();
     }
+
+
+
     public void addImageButton(View view) {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
+//        Intent intent = new Intent(Intent.ACTION_PICK);
+//        intent.setType("image/*");
         //imagePickerLauncher.launch(String.valueOf(intent));
+        Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        ActivityCompat.startActivityForResult(this, intent, PICK_IMAGE_REQUEST, null);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        SQLiteManager sqLiteManager = SQLiteManager.instanceOfDatabase(this);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            // Get the URI of the selected image
+            Uri selectedImageUri = data.getData();
+
+            // Set the selected image to ImageView
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
+                image.setImageBitmap(bitmap);
+
+                // Convert Bitmap to byte array
+//                ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+//                bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArray);
+//                byte[] img = byteArray.toByteArray();
+//
+//                // Save image to database
+//                boolean insert = sqLiteManager.addImageToNote(img);
+//                if (insert) {
+//                    Toast.makeText(NoteDetailActivity.this, "Data Save", Toast.LENGTH_SHORT).show();
+//                } else {
+//                    Toast.makeText(NoteDetailActivity.this, "Data Not Save", Toast.LENGTH_SHORT).show();
+//                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

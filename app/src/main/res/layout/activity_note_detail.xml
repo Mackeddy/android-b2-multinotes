@@ -1,104 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".NoteDetailActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/darkGray"
         android:minHeight="?actionBarSize"
-        android:theme="?actionBarTheme"
-        android:background="@color/darkGray">
+        android:theme="?actionBarTheme">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="top"
             android:text="Note Detail"
-            android:textSize="35sp"
             android:textColor="@color/white"
-            android:textStyle="bold"
-            android:layout_gravity="top"/>
+            android:textSize="35sp"
+            android:textStyle="bold" />
 
         <ImageButton
             android:layout_width="48sp"
             android:layout_height="48sp"
-            android:src="@drawable/save"
             android:layout_gravity="end"
+            android:contentDescription="Save"
             android:onClick="saveNote"
-            android:contentDescription="Save" />
+            android:src="@drawable/save" />
 
         <ImageButton
             android:id="@+id/deleteNoteButton"
             android:layout_width="48sp"
             android:layout_height="48sp"
             android:layout_gravity="end"
+            android:contentDescription="Delete"
             android:onClick="deleteNote"
-            android:src="@drawable/delete"
-            android:contentDescription="Delete" />
+            android:src="@drawable/delete" />
 
         <ImageButton
             android:id="@+id/setAlarmButton"
             android:layout_width="48sp"
             android:layout_height="48sp"
             android:layout_gravity="end"
-            android:onClick="setAlarm"
-            android:src="@drawable/alarm"
-            android:contentDescription="Alarm" />
+            android:contentDescription="Alarm"
+            android:src="@drawable/alarm" />
     </androidx.appcompat.widget.Toolbar>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Title"
-        android:textSize="25sp"
+        android:layout_gravity="top"
         android:layout_marginTop="20dp"
+        android:text="Title"
         android:textColor="@color/darkGray"
-        android:textStyle="bold"
-        android:layout_gravity="top"/>
+        android:textSize="25sp"
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/titleEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
+        android:layout_gravity="center"
         android:layout_marginTop="20dp"
         android:maxLines="1"
         android:textColor="@color/darkGray"
-        android:layout_gravity="center"/>
+        android:textSize="25sp" />
 
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Description"
-        android:textSize="25sp"
+        android:layout_gravity="top"
         android:layout_marginTop="20dp"
+        android:text="Description"
         android:textColor="@color/darkGray"
-        android:textStyle="bold"
-        android:layout_gravity="top"/>
+        android:textSize="25sp"
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/descriptionEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
+        android:layout_gravity="center"
         android:layout_marginTop="20dp"
         android:minLines="3"
         android:textColor="@color/darkGray"
-        android:layout_gravity="center"/>
+        android:textSize="25sp" />
 
     <ImageButton
         android:id="@+id/addImage"
         android:layout_width="48sp"
         android:layout_height="48sp"
         android:layout_gravity="top"
-        android:src="@drawable/addimage"
+        android:contentDescription="Add Image"
         android:onClick="addImageButton"
-        android:contentDescription="Add Image" />
+        android:src="@drawable/addimage" />
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="104dp" />
+
+    <TextView
+        android:id="@+id/selectTime"
+        android:layout_width="397dp"
+        android:layout_height="43dp"
+        android:text="Đặt Giờ"
+        android:textColor="@color/darkGray"
+        android:textSize="30sp" />
 
 </LinearLayout>

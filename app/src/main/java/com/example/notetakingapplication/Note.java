@@ -13,20 +13,23 @@ public class Note {
     private String description;
     private Date deleted;
     private LocalDateTime created;
-    public Note(int id, String title, String description,  LocalDateTime created, Date deleted) {
+    private byte[] image;
+    public Note(int id, String title, String description,  LocalDateTime created, Date deleted, byte[] image) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.deleted = deleted;
         this.created = created;
+        this.image = image;
     }
 
-    public Note(int id, String title, String description, LocalDateTime created) {
+    public Note(int id, String title, String description, LocalDateTime created, byte[] image) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.created = created;
         this.deleted = null;
+        this.image = image;
     }
 
     public Note() {
@@ -88,5 +91,13 @@ public class Note {
 
     public void setCreated(LocalDateTime created) {
         this.created = created;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 }
